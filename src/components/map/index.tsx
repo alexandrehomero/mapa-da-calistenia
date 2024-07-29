@@ -30,17 +30,29 @@ const MapBlock = () => {
     return [Number(place.longitude), Number(place.latitude)]
   })
 
-  const mapPoints = coordinates.map((coordinate) => {
-    const point = new Point(coordinate);
+  const mapPoints = places.map((place) => {
+    const point = new Point([Number(place.longitude), Number(place.latitude)]);
     console.log(point)
-    point.on(["onclick"], console.log("click"))
-    return new Feature(point);
+    return new Feature({
+      geometry: point,
+      id: place.id
+    });
   });
 
-  const centerPoint = coordinates
+  const centerPointSum = () => {
+    const coordinatesSum = coordinates.reduce((a,b) => {
+    return [a[0] + b[0], a[1] + b[1]]
+  })
+  return [coordinatesSum[0] / coordinates.length, coordinatesSum[1] / coordinates.length]
+}
+
+  const vectorSource = new VectorSource({
+    features: mapPoints,
+  })
 
   useEffect(() => {
     if (mapPoints.length > 0) {
+      
       const map = new Map({
         target: mapContainerRef.current,
         layers: [
@@ -48,23 +60,28 @@ const MapBlock = () => {
             source: new OSM(),
           }),
           new VectorLayer({
-            source: new VectorSource({
-              features: mapPoints,
-            }),
+            source: vectorSource,
             style: {
-              'circle-radius': 9,
+              'circle-radius': 3,
               'circle-fill-color': 'red',
             },
           }),
         ],
         view: new View({
-          center: [-48.2772, -18.9146],
+          center: centerPointSum(),
           zoom: 12,
         }),
       });
-  
+      map.on("click", (evt) => {
+        console.log(evt)
+        console.log(evt.coordinate)
+        let features = vectorSource.getClosestFeatureToCoordinate(evt.coordinate)
+        console.log(features)
+        console.log(features.values_.id)
+      })
       return () => {
         map.setTarget(null);
+
       };
     }
 
