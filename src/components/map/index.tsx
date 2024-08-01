@@ -11,20 +11,24 @@ import styled from 'styled-components';
 import 'ol/ol.css';
 
 import PocketBase from 'pocketbase' // Import PocketBase instance
+import Modal from '../modal';
 
 const MapBlock = () => {
   useGeographic();
   const mapContainerRef = useRef(null);
   const [places, setPlaces] = useState([]);
-  const pb = new PocketBase('http://127.0.0.1:8090');
-  useEffect(() => {
-    pb.collection('places').getList(1, 50, {
-        filter: 'created >= "2022-01-01 00:00:00"',
-      }).then((e) => {
-        setPlaces(e.items)
-      })
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
-  }, []);
+  const openModal = () => {
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const pb = new PocketBase('http://127.0.0.1:8090');
 
   const coordinates = places.map((place) => {
     return [Number(place.longitude), Number(place.latitude)]
@@ -40,19 +44,29 @@ const MapBlock = () => {
   });
 
   const centerPointSum = () => {
-    const coordinatesSum = coordinates.reduce((a,b) => {
-    return [a[0] + b[0], a[1] + b[1]]
-  })
-  return [coordinatesSum[0] / coordinates.length, coordinatesSum[1] / coordinates.length]
-}
+    const coordinatesSum = coordinates.reduce((a, b) => {
+      return [a[0] + b[0], a[1] + b[1]]
+    })
+    return [coordinatesSum[0] / coordinates.length, coordinatesSum[1] / coordinates.length]
+  }
 
   const vectorSource = new VectorSource({
     features: mapPoints,
   })
 
+
+  useEffect(() => {
+    pb.collection('places').getList(1, 50, {
+      filter: 'created >= "2022-01-01 00:00:00"',
+    }).then((e) => {
+      setPlaces(e.items)
+    })
+
+  }, []);
+
   useEffect(() => {
     if (mapPoints.length > 0) {
-      
+
       const map = new Map({
         target: mapContainerRef.current,
         layers: [
@@ -73,11 +87,9 @@ const MapBlock = () => {
         }),
       });
       map.on("click", (evt) => {
-        console.log(evt)
-        console.log(evt.coordinate)
+        openModal()
         let features = vectorSource.getClosestFeatureToCoordinate(evt.coordinate)
-        console.log(features)
-        console.log(features.values_.id)
+        setSelectedPlace(places.find((e) => {return e.id == features.values_.id}))
       })
       return () => {
         map.setTarget(null);
@@ -90,7 +102,12 @@ const MapBlock = () => {
   if (places.length < 1) {
     return <h1>loading...</h1>
   }
-  return <Container ref={mapContainerRef} />;
+  return (
+  <>
+    <Container ref={mapContainerRef} />
+    <Modal children={selectedPlace && selectedPlace.subtext} isOpen={modalOpen} onClose={closeModal}/>
+  </>
+  )
 };
 
 const Container = styled.div`

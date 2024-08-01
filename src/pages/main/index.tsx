@@ -7,7 +7,6 @@ import FormComponent from '../../components/form'
 const Main = () => {
   return (
     <Container>
-      <h1>BEM VINDOS AO MAPA DA CALISTENIA</h1>
       <MapComponent />
 
     </Container>

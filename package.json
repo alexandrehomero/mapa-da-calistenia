@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/node": "^20.3.2",
     "esri-leaflet-geocoder": "^3.1.4",
+    "html-react-parser": "^5.1.12",
     "million": "^2.4.8",
     "ol": "^7.4.0",
     "ol-geocoder": "^4.1.2",
