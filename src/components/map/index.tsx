@@ -8,10 +8,13 @@ import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
 import { useGeographic } from 'ol/proj';
 
 import styled from 'styled-components';
+import process from 'process';
 import 'ol/ol.css';
 
 import PocketBase from 'pocketbase' // Import PocketBase instance
 import Modal from '../modal';
+
+
 
 const MapBlock = () => {
   useGeographic();
@@ -28,7 +31,7 @@ const MapBlock = () => {
     setModalOpen(false);
   };
 
-  const pb = new PocketBase('http://127.0.0.1:8090');
+  const pb = new PocketBase(import.meta.env.VITE_API_URL);
 
   const coordinates = places.map((place) => {
     return [Number(place.longitude), Number(place.latitude)]
@@ -105,14 +108,14 @@ const MapBlock = () => {
   return (
   <>
     <Container ref={mapContainerRef} />
-    <Modal children={selectedPlace && selectedPlace.subtext} isOpen={modalOpen} onClose={closeModal}/>
+    <Modal children={selectedPlace && selectedPlace.subtext} selectedPlace={selectedPlace} isOpen={modalOpen} onClose={closeModal}/>
   </>
   )
 };
 
 const Container = styled.div`
   width: 100%;
-  height: 600px;
+  height: 100vh;
 `;
 
 export default MapBlock;
